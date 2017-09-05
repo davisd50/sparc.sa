@@ -2,3 +2,8 @@
 ++++++++++++++++++
 
 * initial release
+
+1.0.1
+++++++++++++++++++
+
+* bundle yaml config definition files with build artifacts

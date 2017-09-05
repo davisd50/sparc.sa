@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.0.0'
+version = '1.0.1'
 
 TESTS_REQUIRE = [
     'sparc.testing',
@@ -35,7 +35,7 @@ setup(name='sparc.sa',
       namespace_packages=['sparc'],
       include_package_data=True,
       package_data = {
-          '': ['*.zcml']
+          '': ['*.zcml', '*.yaml']
         },
       zip_safe=False,
       install_requires=[
