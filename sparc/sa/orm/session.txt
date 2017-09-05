@@ -1,0 +1,65 @@
+==============================================
+SQLAlchemy sessions
+==============================================
+
+>>> import sqlalchemy
+>>> from sqlalchemy.ext.declarative import declarative_base
+>>> Base = declarative_base()
+>>> class Test(Base):
+...     __tablename__ = 'test'
+...     id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True)
+...     name = sqlalchemy.Column(sqlalchemy.Unicode, nullable=True, unique=False)
+
+In order to access a sqlite :memory: db from multiple threads, some special
+flags need to be sent to the factory.  
+See http://docs.sqlalchemy.org/en/latest/dialects/sqlite.html#pysqlite-threading-pooling
+>>> from zope import component
+>>> from sqlalchemy.pool import StaticPool
+>>> engine = component.createObject('sparc.sa.engine.engine_from_config', 
+...             {'dsn': 'sqlite:///:memory:',
+...              'kwargs': {'connect_args':{'check_same_thread':False},
+...                         'poolclass':StaticPool}
+...             })
+>>> Base.metadata.create_all(engine)
+
+>>> from sparc.sa.orm import ISAScopedTransaction
+>>> transaction =  component.getMultiAdapter((engine, Base), ISAScopedTransaction)
+>>> with transaction():
+...    test_1 = Test()
+...    assert(test_1.id == None)
+...    transaction.session.add(test_1)
+>>> test_1 = transaction.session.query(Test).one()
+>>> test_1.id == 1
+True
+
+>>> with transaction():
+...     test_1 = transaction.session.query(Test).one()
+...     assert(test_1.id == 1)
+
+>>> import threading
+>>> func_2_loaded = threading.Event()
+>>> func_1_mutated = threading.Event()
+>>> def func_1():
+...     session = transaction.session
+...     test_1_t1 = session.query(Test).one()
+...     assert(test_1_t1.id == 1)
+...     func_2_loaded.wait()
+...     test_1_t1.name = 'func_1_name'
+...     assert(test_1_t1 in session.dirty)
+...     func_1_mutated.set()
+...     
+>>> def func_2():
+...     session = transaction.session
+...     test_1_t2 = session.query(Test).one()
+...     assert(test_1_t2.id == 1)
+...     func_2_loaded.set()
+...     func_1_mutated.wait()
+...     assert(test_1_t2 not in session.dirty)
+
+>>> with transaction():
+...     t1 = threading.Thread(target=func_1)
+...     t1.start()
+...     t2 = threading.Thread(target=func_2)
+...     t2.start()
+...     t1.join()
+...     t2.join()

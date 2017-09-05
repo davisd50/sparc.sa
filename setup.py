@@ -42,6 +42,7 @@ setup(name='sparc.sa',
           'setuptools',
           'zope.interface',
           'zope.component',
+          'sqlalchemy'
       ],
       tests_require=TESTS_REQUIRE,
       extras_require={

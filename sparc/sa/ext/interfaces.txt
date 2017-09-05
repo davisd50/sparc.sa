@@ -1,0 +1,9 @@
+==============================================
+SQLAlchemy declarative models
+==============================================
+
+>>> from sparc.sa.ext import ISADeclarativeMeta
+>>> from sqlalchemy.ext.declarative import declarative_base
+>>> Base = declarative_base()
+>>> ISADeclarativeMeta.providedBy(Base)
+True

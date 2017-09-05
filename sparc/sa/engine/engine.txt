@@ -1,0 +1,10 @@
+==============================================
+SQLAlchemy engine
+==============================================
+
+>>> from sparc.sa.engine import ISAEngine
+>>> from zope import component
+>>> config = {'dsn': 'sqlite:///:memory:'}
+>>> engine = component.createObject('sparc.sa.engine.engine_from_config', config)
+>>> ISAEngine.providedBy(engine)
+True
