@@ -1,0 +1,14 @@
+==============================================
+SQLAlchemy ORM mappers
+==============================================
+
+>>> from sparc.sa.orm.mapper import ISAMapper
+>>> import sqlalchemy
+>>> from sqlalchemy.ext.declarative import declarative_base
+>>> Base = declarative_base()
+>>> class Test(Base):
+...     __tablename__ = 'test'
+...     id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True)
+...     name = sqlalchemy.Column(sqlalchemy.Unicode, nullable=True, unique=False)
+>>> ISAMapper.providedBy(Test.name.parent)
+True

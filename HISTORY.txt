@@ -12,3 +12,8 @@
 ++++++++++++++++++
 
 * add orm attribute and mapper interfaces
+
+1.1.1
+++++++++++++++++++
+
+* fix import issue with .orm.mapper.interfaces
