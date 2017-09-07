@@ -1,0 +1,158 @@
+ORM Query Helpers
+==================
+
+It is a common activity to query SA ORM data.  this package contains some
+components that streamline common query operations.  These operations are based
+on SQL LEFT OUTER JOIN logic.  The components allow for proper manipulation
+of the left-most table (all of the left-most table contents is available for
+the query, while tables further right will be restricted based on bridged
+foreign key relationships).
+
+To help understand, consider the following list as related tables
+
+a, b, c, d, e
+
+assume that b has a foreign key to a, c has a foreign key to b, and so forth...
+searching for a's based on filters related to b-e is straight forward
+
+SELECT a,b,c,d,e FROM a LEFT OUTER JOIN b LEFT OUTER JOIN c ... WHERE b.1 != 'something'
+
+But if you wanted to search for c's based on filters in other tables, then
+
+SELECT c,b,a,d,e FROM c LEFT OUTER JOIN b ... WHERE a.1 == 'something'
+
+The components in this package help to streamline this kind of activity.
+
+
+Model Relationship Graph
+-------------------------
+To effectively query SA ORM data, first ORM table relationships
+must be defined.  This identifies the one->many->many->... for each table.
+The sparc.sa.orm.testing module contains these tables:
+
+ - test1  (ORM Model: Test1)
+ - test2  (ORM Model: Test2)
+ - test3  (ORM Model: Test3)
+ - test4  (ORM Model: Test4)
+
+Each of these tables contains a foreign key relationship with at least one
+other table in the list.  This top-down order shown above is important as 
+tables have direct or indirect relationships with all tables listed higher.
+
+The query package provides the IORMRelatedModelsAdder interface to help manage this
+structure via the ORM models.  Mostly this is important to understand if you
+plan to add extra ORM models on top of this list and then need to be able to
+search that data in the method described above (e.g. LEFT OUTER JOIN).
+
+an empty IORMRelatedModelsAdder provider can be created via a component factory
+>>> from zope import component
+>>> rel_manager = component.createObject(u"sparc.sa.orm.query.orm_related_models_adder")
+
+We can add a couple relationships easy enough.  Model relationship are added
+as sequences.  These are added into the manager as a graph with by-directional
+edges for each adjacent sequence entry.
+>>> from sparc.sa.orm import testing
+>>> rel_manager.add_sequence([testing.Test2, testing.Test3])
+
+Once the graph is populated, we can enumerate it in BFS form via the
+flattened() call.  We have to indicate where the BFS traversal will start.  In
+this example, we start from Test1.
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(testing.Test2)))
+['Test2', 'Test3']
+
+We could just as easy start from Test2
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(testing.Test3)))
+['Test3', 'Test2']
+
+You can add isolated nodes without any harm
+>>> rel_manager.add_sequence([testing.Test1])
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(testing.Test2)))
+['Test2', 'Test3']
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(testing.Test1)))
+['Test1']
+
+You can add edges to those nodes easy enough
+>>> rel_manager.add_sequence([testing.Test3, testing.Test1])
+>>> list(map(lambda x: x.__name__, rel_manager.flattened(testing.Test1)))
+['Test1', 'Test3', 'Test2']
+
+
+Model Query & Result Utility
+-----------------------------
+Now that the model relationships have been define, we can move into creating
+database queries and getting results.
+
+Let's consider a simple example with the related models from above. 
+Here's how you could get a SQLAlchemy query object that would
+return all Test3 models and their related Test2 and Test1 models.
+
+we can get a query object via a component factory.  q is a ISAQuery 
+provider, which means it is a SQLAlchemy Query object.  We get q from a 
+special factory that performed the required model joins.  Notice
+how we pass in the model sequence based on the flattened() call (which 
+identifies the required left-most model).
+>>> transaction = testing.get_transaction()
+>>> q = component.createObject(u"sparc.sa.orm.query.outer_joined_query",
+...                         transaction.session,
+...                         rel_manager.flattened(testing.Test3))
+
+
+Now that our query is prepared, we can execute it and examine the results.
+Result rows are returned as KeyedTuple objects.  Tuple entries will be ORM
+models in the context of this testing.  This package provides a convenience 
+utility for ISAResultRowModel to extract model results from a row based on a 
+given interface.
+>>> testing.populate_tables(transaction)
+>>> from sparc.sa.orm.query import ISAResultRowModel
+>>> rrm = component.getUtility(ISAResultRowModel)
+>>> test_1 = rrm.first(testing.ITest3, q.first()) # get the first tuple entry that provides ITest1
+>>> testing.ITest3.providedBy(test_1)
+True
+
+
+Model Filter
+-------------
+The entire purpose of building these components is to allow effective filtering
+of queried ORM models.  A recursive data structure  can be used as the basis
+for a query filter definition.  The structure follows this paradigm:
+
+{
+ 'conjunction': 'and',
+ 'expressions':
+    [
+     {'attribute':'model.field1', 'condition':'==', 'value':'value1'},
+     {'attribute':'model.field2', 'condition':'!=', 'value':'value2'},
+     {
+      'conjunction': 'or',
+      'expressions':
+          [
+           {'attribute':'model.field3', 'condition':'==', 'value':'value3'},
+           {'attribute':'model.field4', 'condition':'is null'}
+          ]
+     }
+    ]
+}
+
+WHERE model.field1 == 'value1' AND model.field2 != 'value2' AND (model.field1 == 'value3' OR model.field4 IS NULL)
+
+We'll start by creating a simple filter definition
+>>> filter = {
+...  'conjunction': 'and',
+...  'expressions':
+...      [{'attribute':'Test3.test2_id', 'condition':'==', 'value':'test2_2'}]
+... }
+
+
+To use this definition, we need to convert it into ISAModelFilterExpressionGroup
+provider.  We have a component factory that will do this for us
+>>> expression_group = component.createObject(
+... 		u"sparc.sa.orm.query.filter_expression_group_from_container", transaction.Base, filter)
+
+We can adapt ISAModelFilterExpressionGroup into ISAConjunction, which is 
+ultimately what is passed into the SQLAlchemy query object's filter method
+>>> from sparc.sa.orm.query import ISAConjunction
+>>> r = q.filter(ISAConjunction(expression_group)).all()
+>>> len(r)
+1
+>>> r[0][0].test2_id == 'test2_2'
+True

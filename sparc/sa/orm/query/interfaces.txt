@@ -1,0 +1,13 @@
+==============================================
+SQLAlchemy ORM mappers
+==============================================
+
+>>> from sparc.sa.orm import testing
+>>> transaction = testing.get_transaction()
+>>> q = transaction.session.query(testing.Test1)
+>>> from sparc.sa.orm.query import ISAQuery
+>>> ISAQuery.providedBy(q)
+True
+>>> q = q.filter(testing.Test1.id == 1)
+>>> ISAQuery.providedBy(q)
+True

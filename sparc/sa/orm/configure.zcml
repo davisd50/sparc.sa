@@ -4,6 +4,7 @@
     i18n_domain="sparc.sa">
     
     <include package=".attributes" />
+    <include package=".query" />
     
     <adapter
         provides=".ISAScopedTransaction"
