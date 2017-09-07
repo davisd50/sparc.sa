@@ -1,0 +1,67 @@
+==============================================
+SQLAlchemy ORM attribute mapping
+==============================================
+
+>>> from sparc.sa.orm.attributes import ISAInstrumentedAttribute
+>>> import sqlalchemy
+>>> from sqlalchemy.ext.declarative import declarative_base
+>>> Base = declarative_base()
+>>> class Test(Base):
+...     __tablename__ = 'test'
+...     id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True)
+...     name = sqlalchemy.Column(sqlalchemy.Unicode, nullable=True, unique=False)
+
+>>> from zope import component
+>>> from sparc.sa.orm import ISAScopedTransaction
+>>> engine = component.createObject('sparc.sa.engine.engine_from_config', 
+...             {'dsn': 'sqlite:///:memory:'})
+>>> Base.metadata.create_all(engine)
+>>> transaction =  component.getMultiAdapter((engine, Base), ISAScopedTransaction)
+
+>>> from zope.interface.common.mapping import IIterableMapping
+>>> mapping = component.getMultiAdapter((Test.name, transaction.session), IIterableMapping)
+
+The map is empty
+>>> 'test_1' in mapping
+False
+>>> len(mapping)
+0
+>>> mapping['test_1']
+Traceback (most recent call last):
+...
+KeyError: 'test_1'
+>>> mapping.get('test_1', True)
+True
+>>> mapping.keys()
+[]
+>>> list(iter(mapping))
+[]
+>>> mapping.values()
+[]
+>>> mapping.items()
+[]
+>>> mapping.items()
+[]
+
+Add some entries into the tables, then check the map again
+>>> test_1 = Test()
+>>> test_1.name = 'test_1'
+>>> transaction.session.add(test_1)
+>>> test_2 = Test()
+>>> test_2.name = 'test_2'
+>>> transaction.session.add(test_2)
+
+>>> 'test_1' in mapping
+True
+>>> len(mapping)
+2
+>>> mapping['test_2'] == test_2
+True
+>>> mapping.get('test_1', False) == test_1
+True
+>>> set(mapping.keys()) == set(['test_1','test_2'])
+True
+>>> mapping.items() == mapping.items()
+True
+>>> mapping.items() != []
+True

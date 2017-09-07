@@ -3,6 +3,8 @@
     xmlns:i18n="http://namespaces.zope.org/i18n"
     i18n_domain="sparc.sa">
     
+    <include package=".attributes" />
+    
     <adapter
         provides=".ISAScopedTransaction"
         for="..engine.ISAEngine
