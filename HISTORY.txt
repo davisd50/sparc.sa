@@ -17,3 +17,9 @@
 ++++++++++++++++++
 
 * fix import issue with .orm.mapper.interfaces
+
+1.2.0
+++++++++++++++++++
+
+* Add new mapping component for unique instrumented attributes
+* Introduce new ORM query components for related models
