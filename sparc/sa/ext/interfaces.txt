@@ -7,7 +7,9 @@ SQLAlchemy declarative models
 >>> Base = declarative_base()
 >>> ISADeclarativeMeta.providedBy(Base)
 True
+>>> import sqlalchemy
 >>> class Test(Base):
-...    pass
+...     __tablename__ = 'test'
+...     id = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=True)
 >>> ISADeclarativeMeta.providedBy(Base)
 True
