@@ -7,3 +7,7 @@ SQLAlchemy declarative models
 >>> Base = declarative_base()
 >>> ISADeclarativeMeta.providedBy(Base)
 True
+>>> class Test(Base):
+...    pass
+>>> ISADeclarativeMeta.providedBy(Base)
+True
