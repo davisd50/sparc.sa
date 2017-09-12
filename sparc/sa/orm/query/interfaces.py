@@ -37,10 +37,18 @@ class ISAModelFilterExpression(interface.Interface):
     attribute = interface.Attribute(u"ISAModel attribute to filter by")
     condition = schema.Choice(
                 title=u"Filter conditional matching logic",
-                values=['==','equals','!=','not equals','<', 'less than', 
-                        '<=','less than equal', '>', 'greater than', 
-                        '>=', 'greater than equal', 'like','ilike',
-                        'in','not in','is null', 'is not null'],
+                values=['==','equals',
+                        '!=','not equals',
+                        '<', 'less than', 
+                        '<=','less than equal',
+                        '>', 'greater than', 
+                        '>=', 'greater than equal', 
+                        'like','ilike',
+                        'in',
+                        'not in',
+                        'is null', 
+                        'is not null'
+                        ],
                 required=True
             )
     value = schema.Field(
