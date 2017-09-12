@@ -26,6 +26,14 @@ class SAExpressionFromSAModelFilterExpression(object):
             _return = context.attribute.__eq__(context.value)
         elif c == '!=' or c.lower() == 'not equals':
             _return = context.attribute.__ne__(context.value)
+        elif c == '<' or c.lower() == 'less than':
+            _return = context.attribute.__lt__(context.value)
+        elif c == '<=' or c.lower() == 'less than equal':
+            _return = context.attribute.__le__(context.value)
+        elif c == '>' or c.lower() == 'greater than':
+            _return = context.attribute.__gt__(context.value)
+        elif c == '>=' or c.lower() == 'greater than equal':
+            _return = context.attribute.__ge__(context.value)
         elif c.lower() == 'like':
             _return = context.attribute.like(context.value)
         elif c.lower() == 'ilike':
