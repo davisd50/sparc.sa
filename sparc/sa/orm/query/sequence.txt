@@ -1,0 +1,44 @@
+==============================================
+SQLAlchemy ORM Query Sequences
+==============================================
+
+>>> from sparc.sa.orm import testing
+>>> transaction = testing.get_transaction()
+>>> testing.populate_tables(transaction)
+>>> q = transaction.session.query(testing.Test1).order_by(testing.Test1.id)
+
+>>> from zope import component
+>>> from zope.interface.common.sequence import IFiniteSequence
+>>> seq = IFiniteSequence(q)
+>>> len(seq)
+3
+>>> seq[0:2][0].id == 1
+True
+>>> seq[0:2][1].id == 2
+True
+>>> seq[-1].id == 3
+True
+>>> seq[3:3]
+[]
+>>> seq[3]
+Traceback (most recent call last):
+...
+IndexError: list index out of range
+>>> seq[-4]
+Traceback (most recent call last):
+...
+IndexError: list index out of range
+>>> seq[0::2][1].id == 3
+True
+
+>>> from sparc.sa.orm.query.testing import related_models
+>>> from sqlalchemy import desc
+>>> q = component.createObject(u"sparc.sa.orm.query.outer_joined_query",
+...                         transaction.session,
+...                         related_models.flattened(testing.Test2)).order_by(desc(testing.Test2.id))
+>>> q = q.filter(testing.Test1.name == 'test1_1')
+>>> seq = IFiniteSequence(q)
+>>> len(seq)
+2
+>>> seq[0][0].name == 'test2_2'
+True

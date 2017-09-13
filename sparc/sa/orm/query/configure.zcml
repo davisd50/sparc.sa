@@ -20,5 +20,11 @@
         name="sparc.sa.orm.query.outer_joined_query"
         component=".query.SAOuterJoinQueryFactory"
         />
+    
+    <adapter
+        provides="zope.interface.common.sequence.IFiniteSequence"
+        for=".ISAQuery"
+        factory=".sequence.ModelSequenceForQuery"
+        />
 
 </configure>

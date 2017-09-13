@@ -139,7 +139,7 @@ We'll start by creating a simple filter definition
 >>> filter = {
 ...  'conjunction': 'and',
 ...  'expressions':
-...      [{'attribute':'Test3.test2_id', 'condition':'==', 'value':'test2_2'}]
+...      [{'attribute':'Test3.test2_id', 'condition':'==', 'value':2}]
 ... }
 
 
@@ -153,6 +153,6 @@ ultimately what is passed into the SQLAlchemy query object's filter method
 >>> from sparc.sa.orm.query import ISAConjunction
 >>> r = q.filter(ISAConjunction(expression_group)).all()
 >>> len(r)
-1
->>> r[0][0].test2_id == 'test2_2'
+2
+>>> r[0][0].test2_id == 2
 True

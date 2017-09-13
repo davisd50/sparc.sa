@@ -15,6 +15,7 @@ def get_transaction():
     sa_engine = engine.SAEngineFromConfigFactory({'dsn': 'sqlite:///:memory:',
                         'kwargs': {'connect_args':{'check_same_thread':False},
                         'poolclass':StaticPool}})
+    sa_engine.engine.execute('pragma foreign_keys=ON')
     transaction = ThreadLocalSASessionTransaction(sa_engine, Base)
     transaction.Base.metadata.create_all(bind=sa_engine)
     return transaction
@@ -28,16 +29,18 @@ def populate_tables(transaction):
     create_model(transaction, Test2, **{'name': 'test2_2'})
     create_model(transaction, Test2, **{'name': 'test2_3'})
     
-    create_model(transaction, Test3, **{'test1_id': 'test1_1',
-                                      'test2_id': 'test2_1'})
-    create_model(transaction, Test3, **{'test1_id': 'test1_1',
-                                      'test2_id': 'test2_2'})
+    create_model(transaction, Test3, **{'test1_id': 1, #test1_1
+                                      'test2_id': 1}) #test2_1
+    create_model(transaction, Test3, **{'test1_id': 1, #test1_1
+                                      'test2_id': 2}) #test2_2
+    create_model(transaction, Test3, **{'test1_id': 2, #test1_2
+                                      'test2_id': 2}) #test2_2
     
     create_model(transaction, Test4, **{'name': 'test4_1',
-                                      'test2_id': 'test2_1'})
+                                      'test2_id': 1}) #test2_1
     
     create_model(transaction, Test4, **{'name': 'test4_2',
-                                      'test2_id': 'test2_3'})
+                                      'test2_id': 3}) #test2_3
 
 def create_model(transaction, class_, **attributes):
     session = transaction.session
