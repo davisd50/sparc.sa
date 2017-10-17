@@ -12,5 +12,5 @@ class SAEngineFromConfig(object):
         Kwargs:
             see SQLAlchemyEngine def in configure.yaml
         """
-        return sqlalchemy.create_engine(SQLAlchemyEngine.get('dsn', ''), **SQLAlchemyEngine.get('kwargs', {}))
+        return sqlalchemy.create_engine(SQLAlchemyEngine['dsn'], **SQLAlchemyEngine.get('kwargs', {}))
 SAEngineFromConfigFactory = Factory(SAEngineFromConfig)

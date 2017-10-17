@@ -45,10 +45,10 @@ True
 
 Add some entries into the tables, then check the map again
 >>> test_1 = Test()
->>> test_1.name = 'test_1'
+>>> test_1.name = u'test_1'
 >>> transaction.session.add(test_1)
 >>> test_2 = Test()
->>> test_2.name = 'test_2'
+>>> test_2.name = u'test_2'
 >>> transaction.session.add(test_2)
 
 >>> 'test_1' in mapping

@@ -1,3 +1,3 @@
 include *.md
 include *.txt
-recursive-include sparc *.zcml
+recursive-include sparc *.zcml *.yaml
