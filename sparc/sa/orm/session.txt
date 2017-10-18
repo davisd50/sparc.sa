@@ -36,6 +36,8 @@ True
 ...     test_1 = transaction.session.query(Test).one()
 ...     assert(test_1.id == 1)
 
+Keep in mind, this code only verifies that references to transaction.session
+return a thread-local session.  Transactions can not cross thread boundaries.
 >>> import threading
 >>> func_2_loaded = threading.Event()
 >>> func_1_mutated = threading.Event()
@@ -56,10 +58,14 @@ True
 ...     func_1_mutated.wait()
 ...     assert(test_1_t2 not in session.dirty)
 
->>> with transaction():
-...     t1 = threading.Thread(target=func_1)
-...     t1.start()
-...     t2 = threading.Thread(target=func_2)
-...     t2.start()
-...     t1.join()
-...     t2.join()
+>>> t1 = threading.Thread(target=func_1)
+>>> t1.start()
+>>> t2 = threading.Thread(target=func_2)
+>>> t2.start()
+>>> t1.join()
+>>> t2.join()
+
+We can verify the threaded transaction rolled back
+>>> test_1 = transaction.session.query(Test).one()
+>>> test_1.name != 'func_1_name' #verifies the 
+True
