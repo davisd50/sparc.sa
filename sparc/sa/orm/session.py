@@ -7,6 +7,9 @@ from . import ISAScopedTransaction
 from ..engine import ISAEngine
 from ..ext import ISADeclarativeMeta
 
+import logging
+logger = logging.getLogger(__name__)
+
 @interface.implementer(ISAScopedTransaction)
 @component.adapter(ISAEngine, ISADeclarativeMeta)
 class ThreadLocalSASessionTransaction(object):
@@ -40,8 +43,10 @@ class ThreadLocalSASessionTransaction(object):
         try:
             yield self._Session
             self.session.commit()
+            logging.debug("Transaction committed for session {} with engine {}".format(self.session, self._engine))
         except:
             self.session.rollback()
+            logging.debug("Transaction rolled back for session {} with engine {}".format(self.session, self._engine))
             raise
         finally:
             self._Session.remove() #http://docs.sqlalchemy.org/en/latest/orm/contextual.html
