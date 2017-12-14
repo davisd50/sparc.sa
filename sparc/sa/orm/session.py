@@ -50,3 +50,4 @@ class ThreadLocalSASessionTransaction(object):
             raise
         finally:
             self._Session.remove() #http://docs.sqlalchemy.org/en/latest/orm/contextual.html
+            logging.debug("Thread scoped session closed and removed for scoped session factory {}".format(self._Session))
