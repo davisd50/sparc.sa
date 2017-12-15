@@ -41,13 +41,14 @@ class ThreadLocalSASessionTransaction(object):
     @contextmanager
     def __call__(self):
         try:
+            logger.debug("Transaction entered for session {} with engine {}".format(self.session, self._engine))
             yield self._Session
             self.session.commit()
-            logging.debug("Transaction committed for session {} with engine {}".format(self.session, self._engine))
+            logger.debug("Transaction committed for session {} with engine {}".format(self.session, self._engine))
         except:
             self.session.rollback()
-            logging.debug("Transaction rolled back for session {} with engine {}".format(self.session, self._engine))
+            logger.debug("Transaction rolled back for session {} with engine {}".format(self.session, self._engine))
             raise
         finally:
             self._Session.remove() #http://docs.sqlalchemy.org/en/latest/orm/contextual.html
-            logging.debug("Thread scoped session closed and removed for scoped session factory {}".format(self._Session))
+            logger.debug("Thread scoped session closed and removed for scoped session factory {}".format(self._Session))
