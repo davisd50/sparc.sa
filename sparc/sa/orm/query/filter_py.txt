@@ -1,0 +1,7 @@
+==============================================
+Expression to SA Expression Group Adapter
+==============================================
+
+Marking this with a failing test to make sure I circle back to verify/fix
+this component.
+>>> True == False
